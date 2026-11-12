@@ -21,40 +21,53 @@ export interface Question {
 
 export const QUESTIONS = [
   {
-    key: 'perfil',
-    title: '[Pregunta 1: ¿Qué te describe mejor?]',
-    noteLabel: 'Perfil',
+    key: 'edad',
+    title: '¿Qué edad tiene la persona que busca la evaluación?',
+    noteLabel: 'Edad del paciente',
     options: [
-      { value: 'perfil_a', label: '[Perfil ideal A]' },
-      { value: 'perfil_b', label: '[Perfil ideal B]' },
-      { value: 'solo_info', label: '[Solo quiero informarme por ahora]' },
+      { value: 'menos_40', label: 'Menos de 40 años' },
+      { value: 'de_40_a_55', label: 'Entre 40 y 55 años' },
+      { value: 'de_56_a_70', label: 'Entre 56 y 70 años' },
+      { value: 'mas_70', label: 'Más de 70 años' },
     ],
   },
   {
-    key: 'situacion',
-    title: '[Pregunta 2: ¿En qué punto estás hoy?]',
-    noteLabel: 'Situación',
+    key: 'condicion',
+    title: '¿Cuánto tiempo lleva la condición sin resolverse?',
+    noteLabel: 'Tiempo con la condición',
     options: [
-      { value: 'empezando', label: '[Estoy empezando]' },
-      { value: 'en_marcha', label: '[Ya lo hago y quiero crecer]' },
+      { value: 'menos_1', label: 'Menos de 1 año' },
+      { value: 'de_1_a_3', label: 'Entre 1 y 3 años' },
+      { value: 'mas_3', label: 'Más de 3 años' },
+      { value: 'solo_info', label: 'No tengo una condición, solo quiero informarme' },
+    ],
+  },
+  {
+    key: 'medico',
+    title: '¿Cómo es tu relación con tu médico tratante?',
+    noteLabel: 'Médico tratante',
+    options: [
+      { value: 'con_medico', label: 'Tengo médico y quiero que esto complemente su seguimiento' },
+      { value: 'sin_medico', label: 'Hoy no tengo un médico que lleve mi caso' },
+      { value: 'dejar_medico', label: 'Quiero dejar de lado a mi médico' },
     ],
   },
   {
     key: 'inversion',
-    title: '[Pregunta 3: ¿Cómo piensas invertir?]',
+    title: 'Si resultas candidato, un tratamiento regenerativo es una inversión importante. ¿Estás en posición de invertir en tu salud?',
     noteLabel: 'Inversión',
     options: [
-      { value: 'tengo_capital', label: '[Tengo el capital para invertir]' },
-      { value: 'financiamiento', label: '[Con financiamiento o un socio]' },
-      { value: 'sin_presupuesto', label: '[Por ahora no tengo cómo invertir]' },
+      { value: 'puede_invertir', label: 'Sí, estoy en posición de invertir si tiene sentido en mi caso' },
+      { value: 'con_familia', label: 'Sí, junto con mi familia' },
+      { value: 'no_puede', label: 'Hoy no estoy en posición de invertir' },
     ],
   },
 ] as const satisfies readonly Question[]
 
 /** Último paso: pregunta abierta (va a GHL como `objetivo`). */
 export const OBJETIVO = {
-  title: '[Pregunta abierta: ¿Qué quieres lograr?]',
-  placeholder: '[Ejemplo de respuesta que oriente al lead]',
+  title: 'Cuéntanos tu caso: tu condición, qué tratamientos ya probaste y qué esperas lograr',
+  placeholder: 'Ej.: Tengo dolor de rodilla hace 5 años, probé infiltraciones y fisioterapia sin cambio. Quiero saber si una terapia regenerativa tiene sentido para mí.',
   minWords: 10,
 }
 
@@ -70,12 +83,13 @@ export function labelFor(key: QuestionKey, value: string): string {
 }
 
 // ── Regla de cualificación ────────────────────────────────────────────────────
-// Por defecto se descarta solo a quien viene "a informarse" o no tiene cómo invertir.
-// El resto de respuestas no descalifica: sirven para preparar la reunión.
-// Ajustar con el cliente (quién SÍ es cliente) y documentarlo en el CLAUDE.md del proyecto.
+// Sale del "no es para ti" del VSL: menores de 40, quien solo quiere informarse, quien quiere dejar
+// de lado a su médico y quien hoy no está en posición de invertir. [CONFIRMAR con el cliente]
 const DISQUALIFY: Partial<Record<QuestionKey, readonly string[]>> = {
-  perfil: ['solo_info'],
-  inversion: ['sin_presupuesto'],
+  edad: ['menos_40'],
+  condicion: ['solo_info'],
+  medico: ['dejar_medico'],
+  inversion: ['no_puede'],
 }
 
 export function qualifies(a: Answers): boolean {
