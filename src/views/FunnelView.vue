@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Landing (/). Todo el texto sale de LANDING en src/content/copy.ts.
 // Cada botón que abre el registro lleva data-cta="registro" (lo usa el e2e).
-// Estructura corta: hero → regla (banda oscura) → método DECIDE → quién habla + ¿es para ti? → cierre.
+// Estructura corta: hero con video → qué te llevas de la consulta → para quién es → cierre.
 // Recurso visual propio: el degradado del logo PHB (navy → aqua) como "línea de lectura" de biomarcadores.
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -11,7 +11,6 @@ import RegistrationModal from '@/components/RegistrationModal.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import TestimonialsSection from '@/components/TestimonialsSection.vue'
 import {
-  FOUNDER_PHOTO,
   IS_LOCAL,
   PERSON_NAME,
   STORAGE_PREFIX,
@@ -44,44 +43,10 @@ function openModal() {
   modalOpen.value = true
 }
 
-// ── Movimiento ────────────────────────────────────────────────────────────────
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-const methodList = ref<HTMLElement | null>(null)
-const activeStep = ref(0)
-// Cifras que cuentan al aparecer: solo las que empiezan con un número entero simple ("20%", "6")
-const factShown = ref(LANDING.founder.facts.map((f) => f.value))
-let observers: IntersectionObserver[] = []
-let raf = 0
-
-function countUp(i: number) {
-  const m = /^(\d+)(\D*)$/.exec(LANDING.founder.facts[i].value)
-  if (!m || reduceMotion) return
-  const target = Number(m[1])
-  const t0 = performance.now()
-  const step = (t: number) => {
-    const p = Math.min(1, (t - t0) / 1100)
-    const eased = 1 - Math.pow(1 - p, 3)
-    factShown.value[i] = `${Math.round(target * eased)}${m[2]}`
-    if (p < 1) requestAnimationFrame(step)
-  }
-  factShown.value[i] = `0${m[2]}`
-  requestAnimationFrame(step)
-}
-
-function updateProgress() {
-  raf = 0
-  const el = methodList.value
-  if (!el) return
-  const r = el.getBoundingClientRect()
-  const mid = window.innerHeight * 0.55
-  const p = Math.min(1, Math.max(0, (mid - r.top) / r.height))
-  el.style.setProperty('--progress', p.toFixed(3))
-}
-
-const onScroll = () => {
-  showSticky.value = window.scrollY > 700
-  if (!raf && !reduceMotion) raf = requestAnimationFrame(updateProgress)
-}
+// ── Aparición al hacer scroll (una vez por elemento) ───────────────────────────
+// Solo en elementos sin :class dinámico: Vue reescribe `class` al cambiar un binding y borraría `is-in`.
+let io: IntersectionObserver | undefined
+const onScroll = () => (showSticky.value = window.scrollY > 700)
 
 onMounted(() => {
   captureFbParams()
@@ -90,43 +55,26 @@ onMounted(() => {
   if (route.query.editar) modalOpen.value = true
 
   const reveals = document.querySelectorAll<HTMLElement>('.reveal')
-  if (reduceMotion || !('IntersectionObserver' in window)) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
     reveals.forEach((el) => el.classList.add('is-in'))
-    methodList.value?.style.setProperty('--progress', '1')
     return
   }
-
-  const revealIo = new IntersectionObserver(
+  io = new IntersectionObserver(
     (entries) => {
       for (const e of entries) {
         if (!e.isIntersecting) continue
-        const el = e.target as HTMLElement
-        el.classList.add('is-in')
-        if (el.dataset.fact !== undefined) countUp(Number(el.dataset.fact))
-        revealIo.unobserve(el)
+        e.target.classList.add('is-in')
+        io?.unobserve(e.target)
       }
     },
-    { rootMargin: '0px 0px -12% 0px', threshold: 0.15 },
+    { rootMargin: '0px 0px -10% 0px' },
   )
-  reveals.forEach((el) => revealIo.observe(el))
-
-  // Paso activo del método: el que cruza el centro de la pantalla
-  const stepIo = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) if (e.isIntersecting) activeStep.value = Number((e.target as HTMLElement).dataset.step)
-    },
-    { rootMargin: '-45% 0px -45% 0px' },
-  )
-  methodList.value?.querySelectorAll('[data-step]').forEach((el) => stepIo.observe(el))
-
-  observers = [revealIo, stepIo]
-  updateProgress()
+  reveals.forEach((el) => io!.observe(el))
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
-  observers.forEach((o) => o.disconnect())
-  if (raf) cancelAnimationFrame(raf)
+  io?.disconnect()
 })
 </script>
 
@@ -156,7 +104,7 @@ onBeforeUnmount(() => {
           <p class="hero__sub enter" style="--d: 120ms">{{ LANDING.sub }}</p>
 
           <div class="hero__cta enter" style="--d: 240ms">
-            <button type="button" class="btn btn--lg btn--arrow" data-cta="registro" @click="openModal">
+            <button type="button" class="btn btn--lg" data-cta="registro" @click="openModal">
               <i class="fa-solid fa-play" aria-hidden="true"></i> {{ LANDING.cta }}
             </button>
             <p class="hero__note">
@@ -208,114 +156,45 @@ onBeforeUnmount(() => {
       </svg>
     </section>
 
-    <!-- 2 · LA REGLA (banda oscura) -->
-    <section class="rule" aria-labelledby="rule-title">
+    <!-- 2 · LA OFERTA: qué te llevas de la consulta -->
+    <section class="offer" aria-labelledby="offer-title">
       <div class="wrap">
-        <h2 id="rule-title" class="rule__title reveal">{{ LANDING.rule.title }}</h2>
-        <ol class="rule__line reveal" role="list">
-          <li v-for="(r, i) in LANDING.rule.items" :key="r" :style="{ '--i': i }" :class="{ last: i === LANDING.rule.items.length - 1 }">
-            <span class="rule__node" aria-hidden="true"></span>
-            <span class="rule__text">{{ r }}</span>
+        <h2 id="offer-title" class="offer__title reveal">{{ LANDING.offer.title }}</h2>
+        <ol class="offer__list" role="list">
+          <li v-for="(item, i) in LANDING.offer.items" :key="item" class="reveal" :style="{ transitionDelay: `${i * 120}ms` }">
+            <span class="offer__num" aria-hidden="true">{{ i + 1 }}</span>
+            <span>{{ item }}</span>
           </li>
         </ol>
-        <p class="rule__metaphor reveal">{{ LANDING.rule.metaphor }}</p>
+        <p class="offer__how reveal">{{ LANDING.offer.how.join(' → ') }}</p>
       </div>
     </section>
 
-    <!-- 3 · MÉTODO DECIDE -->
-    <section class="method" aria-labelledby="method-title">
-      <div class="wrap method__inner">
-        <div class="method__head">
-          <h2 id="method-title" class="method__title reveal">
-            El método <span class="grad-text">DECIDE</span>
-          </h2>
-          <p class="method__sub reveal">{{ LANDING.method.sub }}</p>
-          <button type="button" class="btn btn--arrow method__cta reveal" data-cta="registro" @click="openModal">
-            {{ LANDING.method.cta }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-          </button>
-        </div>
-
-        <ol ref="methodList" class="steps" role="list">
-          <li
-            v-for="(s, i) in LANDING.method.items"
-            :key="s.title"
-            class="step reveal"
-            :class="{ 'is-active': activeStep === i, 'is-past': activeStep > i }"
-            :data-step="i"
-          >
-            <span class="step__letter" aria-hidden="true">{{ s.letter }}</span>
-            <div class="step__body">
-              <h3 class="step__title">{{ s.title }}</h3>
-              <p class="step__text">{{ s.text }}</p>
-              <ul v-if="'markers' in s && s.markers" class="markers" role="list" aria-label="Biomarcadores que se leen juntos">
-                <li v-for="(m, j) in s.markers" :key="m" :style="{ '--j': j }">{{ m }}</li>
-              </ul>
-            </div>
-          </li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- 4 · QUIÉN HABLA -->
-    <section class="founder" aria-labelledby="founder-title">
-      <div class="wrap founder__inner">
-        <div class="founder__story">
-          <img v-if="FOUNDER_PHOTO" class="founder__photo reveal" :src="FOUNDER_PHOTO" :alt="PERSON_NAME" loading="lazy" />
-          <h2 id="founder-title" class="founder__title reveal">{{ LANDING.founder.title }}</h2>
-          <p v-for="b in LANDING.founder.bio" :key="b" class="founder__bio reveal">{{ b }}</p>
-          <p class="founder__sign reveal">
-            <strong>{{ LANDING.founder.name }}</strong>
-            <span>{{ LANDING.founder.role }}</span>
-          </p>
-          <p class="founder__forbes reveal">
-            <i class="fa-solid fa-award" aria-hidden="true"></i> {{ LANDING.founder.recognition }}
-          </p>
-        </div>
-
-        <div class="founder__side">
-          <blockquote class="founder__quote reveal">“{{ LANDING.founder.quote }}”</blockquote>
-          <dl class="facts">
-            <div v-for="(f, i) in LANDING.founder.facts" :key="f.label" class="fact reveal" :data-fact="i">
-              <dt class="fact__value">{{ factShown[i] }}</dt>
-              <dd class="fact__label">{{ f.label }}</dd>
-            </div>
-          </dl>
-        </div>
-      </div>
-
-      <!-- ¿Es para ti? -->
-      <div class="wrap fit" aria-labelledby="fit-title">
+    <!-- 3 · PARA QUIÉN ES -->
+    <section class="fit" aria-labelledby="fit-title">
+      <div class="wrap">
         <h2 id="fit-title" class="fit__title reveal">{{ LANDING.fit.title }}</h2>
+        <p class="fit__sub reveal">{{ LANDING.fit.sub }}</p>
         <div class="fit__cols">
-          <div class="fit__col reveal">
-            <h3 class="fit__head">{{ LANDING.fit.yesTitle }}</h3>
-            <ul role="list">
-              <li v-for="y in LANDING.fit.yes" :key="y">
-                <i class="fa-solid fa-check" aria-hidden="true"></i><span>{{ y }}</span>
-              </li>
-            </ul>
-          </div>
-          <div class="fit__col fit__col--no reveal">
-            <h3 class="fit__head">{{ LANDING.fit.noTitle }}</h3>
-            <ul role="list">
-              <li v-for="n in LANDING.fit.no" :key="n">
-                <i class="fa-solid fa-xmark" aria-hidden="true"></i><span>{{ n }}</span>
-              </li>
-            </ul>
-          </div>
+          <ul class="fit__list reveal" role="list" aria-label="Es para ti si">
+            <li v-for="y in LANDING.fit.yes" :key="y"><i class="fa-solid fa-check" aria-hidden="true"></i>{{ y }}</li>
+          </ul>
+          <ul class="fit__list fit__list--no reveal" role="list" aria-label="No es para ti si">
+            <li v-for="n in LANDING.fit.no" :key="n"><i class="fa-solid fa-xmark" aria-hidden="true"></i>{{ n }}</li>
+          </ul>
         </div>
       </div>
     </section>
 
     <TestimonialsSection />
 
-    <!-- CIERRE -->
+    <!-- 4 · CIERRE -->
     <section class="closing" aria-labelledby="closing-title">
       <div class="closing__glow" aria-hidden="true"></div>
       <div class="wrap closing__inner">
         <h2 id="closing-title" class="closing__title reveal">{{ LANDING.closing.title }}</h2>
-        <p class="closing__sub reveal">{{ LANDING.closing.sub }}</p>
-        <button type="button" class="btn btn--lg btn--light btn--arrow reveal" data-cta="registro" @click="openModal">
+        <p class="closing__sign reveal">{{ LANDING.closing.sign }}</p>
+        <button type="button" class="btn btn--lg btn--light reveal" data-cta="registro" @click="openModal">
           <i class="fa-solid fa-play" aria-hidden="true"></i> {{ LANDING.closing.cta }}
         </button>
       </div>
@@ -342,15 +221,6 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 $ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-// Degradado para texto sobre fondo claro: el del logo, oscurecido para que el tramo aqua se lea
-$grad-text: linear-gradient(95deg, $brand-navy 0%, $primary 55%, #1f7fd0 100%);
-
-.grad-text {
-  background: $grad-text;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
 
 // ── Entrada del hero (una vez, al cargar) ─────────────────────────────────────
 .enter {
@@ -689,448 +559,96 @@ $grad-text: linear-gradient(95deg, $brand-navy 0%, $primary 55%, #1f7fd0 100%);
   }
 }
 
-// ── 2 · La regla ──────────────────────────────────────────────────────────────
-.rule {
-  position: relative;
-  padding: 88px 0 96px;
-  background:
-    radial-gradient(60% 90% at 100% 0%, rgba($brand-steel, 0.35), transparent 60%),
-    $surface-dark;
+// ── 2 · La oferta ─────────────────────────────────────────────────────────────
+.offer {
+  padding: 88px 0;
+  background: $surface-dark;
   color: $ink-on-dark;
 
   &__title {
-    font-size: clamp(1.9rem, 5vw, 3rem);
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
   }
 
-  &__line {
-    position: relative;
+  &__list {
     display: grid;
-    gap: 22px;
-    margin: 44px 0 0;
-    padding: 0 0 0 30px;
+    gap: 0;
+    margin: 36px 0 0;
+    padding: 0;
     list-style: none;
 
-    // la línea que une los cuatro pasos y se dibuja al aparecer
-    &::before {
-      content: '';
-      position: absolute;
-      top: 10px;
-      bottom: 10px;
-      left: 7px;
-      width: 2px;
-      background: linear-gradient(180deg, $brand-steel, $brand-sky, $brand-aqua);
-      transform: scaleY(0);
-      transform-origin: top;
-      transition: transform 1.4s $ease-out;
-    }
-
-    @media (min-width: 860px) {
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-      padding: 34px 0 0;
-
-      &::before {
-        top: 7px;
-        bottom: auto;
-        left: 0;
-        right: 0;
-        width: auto;
-        height: 2px;
-        background: $brand-gradient;
-        transform: scaleX(0);
-        transform-origin: left;
-      }
-    }
-
-    &.is-in::before {
-      transform: none;
-    }
-
-    // la banda entera ya hace su propia entrada: los pasos aparecen en cascada siguiendo la línea
-    &.reveal {
-      transform: none;
-    }
-
     li {
-      position: relative;
-      opacity: 0;
-      transform: translateY(10px);
-      transition:
-        opacity 0.6s $ease-out,
-        transform 0.6s $ease-out;
-      transition-delay: calc(var(--i) * 260ms + 200ms);
-    }
-    &.is-in li {
-      opacity: 1;
-      transform: none;
-    }
-  }
-
-  &__node {
-    position: absolute;
-    top: 6px;
-    left: -30px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: $surface-dark;
-    border: 2px solid $brand-sky;
-
-    @media (min-width: 860px) {
-      top: -34px;
-      left: 0;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 22px 0;
+      border-bottom: 1px solid rgba($ink-on-dark, 0.12);
+      font-family: $font-display;
+      font-size: clamp(1.25rem, 3.2vw, 1.75rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
     }
   }
 
-  &__text {
-    display: block;
-    font-family: $font-display;
-    font-size: clamp(1.25rem, 2.6vw, 1.6rem);
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    color: $ink-on-dark-muted;
-  }
-
-  .last &__text {
-    color: $ink-on-dark;
-  }
-  .last &__node {
-    background: $brand-aqua;
-    border-color: $brand-aqua;
-    box-shadow: 0 0 0 6px rgba($brand-aqua, 0.18);
-  }
-
-  &__metaphor {
-    max-width: 640px;
-    margin-top: 56px;
-    padding-left: 18px;
-    border-left: 2px solid rgba($brand-aqua, 0.5);
-    color: $ink-on-dark-muted;
-    font-size: 1.05rem;
-    font-style: italic;
-  }
-}
-
-// ── 3 · Método DECIDE ─────────────────────────────────────────────────────────
-.method {
-  padding: 96px 0;
-
-  &__inner {
-    display: grid;
-    gap: 40px;
-
-    @media (min-width: 960px) {
-      grid-template-columns: 0.85fr 1.15fr;
-      gap: 72px;
-      align-items: start;
-    }
-  }
-
-  &__head {
-    @media (min-width: 960px) {
-      position: sticky;
-      top: 120px;
-    }
-  }
-
-  &__title {
-    font-size: clamp(2.2rem, 6vw, 3.6rem);
-    letter-spacing: -0.04em;
-  }
-
-  &__sub {
-    max-width: 440px;
-    margin-top: 16px;
-    color: $ink-muted;
-    font-size: 1.05rem;
-  }
-
-  &__cta {
-    margin-top: 28px;
-
-    @media (max-width: 959px) {
-      display: none; // en celular el botón va después de los pasos (sticky CTA cubre)
-    }
-  }
-}
-
-.steps {
-  --progress: 0;
-  position: relative;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  // riel de progreso detrás de las letras
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: 36px;
-    bottom: 36px;
-    left: 35px;
-    width: 2px;
-    border-radius: 2px;
-  }
-  &::before {
-    background: $line;
-  }
-  &::after {
-    background: linear-gradient(180deg, $brand-navy, $primary 50%, $brand-sky);
-    transform: scaleY(var(--progress));
-    transform-origin: top;
-  }
-}
-
-.step {
-  position: relative;
-  display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: 20px;
-  padding: 22px 0;
-
-  &__letter {
-    position: relative;
-    z-index: 1;
+  &__num {
+    flex: none;
     display: grid;
     place-items: center;
-    width: 72px;
-    height: 72px;
-    border-radius: 22px;
-    background: $raised;
-    border: 1px solid $line;
-    font-family: $font-display;
-    font-size: 2.4rem;
-    font-weight: 700;
-    color: rgba($ink, 0.25);
-    transition:
-      color 0.4s $ease-out,
-      background 0.4s $ease-out,
-      border-color 0.4s $ease-out,
-      transform 0.4s $ease-out,
-      box-shadow 0.4s $ease-out;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: $brand-gradient;
+    color: $brand-navy;
+    font-size: 1.1rem;
   }
 
-  &.is-past &__letter {
-    color: $primary;
-    border-color: rgba($primary, 0.3);
-  }
-
-  &.is-active &__letter {
-    color: #fff;
-    background: linear-gradient(135deg, $brand-navy, $primary 60%, $brand-sky);
-    border-color: transparent;
-    transform: scale(1.06);
-    box-shadow: 0 16px 30px -12px rgba($primary, 0.6);
-  }
-
-  &__body {
-    padding-top: 10px;
-  }
-
-  &__title {
-    font-size: 1.45rem;
-    letter-spacing: -0.02em;
-  }
-
-  &__text {
-    margin-top: 6px;
-    max-width: 520px;
-    color: $ink-muted;
-  }
-}
-
-// Biomarcadores "leídos juntos": píldoras unidas por una línea que se dibuja
-.markers {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 16px 0 0;
-  padding: 0;
-  list-style: none;
-
-  li {
-    position: relative;
-    padding: 8px 14px;
-    border: 1px solid rgba($primary, 0.25);
-    border-radius: 999px;
-    background: $primary-soft;
-    color: $brand-indigo;
-    font-size: 0.85rem;
-    font-weight: 500;
-    opacity: 0;
-    transform: scale(0.92);
-    transition:
-      opacity 0.45s $ease-out,
-      transform 0.45s $ease-out;
-    transition-delay: calc(var(--j) * 140ms + 250ms);
-  }
-
-  .step.is-in & li {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-// ── 4 · Quién habla ───────────────────────────────────────────────────────────
-.founder {
-  padding: 96px 0 88px;
-  background: $raised;
-  border-top: 1px solid $line;
-
-  &__inner {
-    display: grid;
-    gap: 48px;
-
-    @media (min-width: 960px) {
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 80px;
-    }
-  }
-
-  &__photo {
-    width: 100%;
-    max-width: 420px;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-    border-radius: 24px;
-    margin-bottom: 28px;
-  }
-
-  &__title {
-    font-size: clamp(1.9rem, 4.6vw, 2.9rem);
-    letter-spacing: -0.035em;
-  }
-
-  &__bio {
-    max-width: 560px;
-    margin-top: 18px;
-    color: $ink-muted;
-    font-size: 1.02rem;
-  }
-
-  &__sign {
-    display: flex;
-    flex-direction: column;
-    margin-top: 28px;
-    padding-top: 18px;
-    border-top: 2px solid transparent;
-    border-image: $brand-gradient 1;
-    max-width: 260px;
-
-    strong {
-      font-weight: 600;
-      font-size: 1.05rem;
-    }
-    span {
-      color: $ink-muted;
-      font-size: 0.9rem;
-    }
-  }
-
-  &__forbes {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 20px;
-    padding: 8px 14px;
-    border-radius: 999px;
-    background: $surface;
-    border: 1px solid $line;
-    font-size: 0.85rem;
-    color: $ink;
-
-    i {
-      color: $primary;
-    }
-  }
-
-  &__quote {
-    margin: 0 0 32px;
-    font-family: $font-display;
-    font-size: clamp(1.4rem, 3vw, 1.8rem);
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    text-wrap: balance;
-  }
-}
-
-.facts {
-  display: grid;
-  margin: 0;
-}
-
-.fact {
-  display: grid;
-  grid-template-columns: minmax(118px, auto) 1fr;
-  align-items: baseline;
-  gap: 18px;
-  padding: 20px 0;
-  border-top: 1px solid $line;
-
-  &__value {
-    font-family: $font-display;
-    font-size: clamp(2.2rem, 5vw, 2.8rem);
-    font-weight: 700;
-    letter-spacing: -0.04em;
-    font-variant-numeric: tabular-nums;
-    color: $primary;
-    white-space: nowrap;
-  }
-
-  &__label {
-    margin: 0;
-    color: $ink-muted;
+  &__how {
+    margin-top: 32px;
+    color: $ink-on-dark-muted;
     font-size: 0.95rem;
   }
 }
 
+// ── 3 · Para quién es ─────────────────────────────────────────────────────────
 .fit {
-  margin-top: 96px;
+  padding: 88px 0;
 
   &__title {
-    font-size: clamp(1.9rem, 4.6vw, 2.9rem);
-    letter-spacing: -0.035em;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+  }
+
+  &__sub {
+    margin-top: 10px;
+    color: $ink-muted;
+    font-size: 1.05rem;
   }
 
   &__cols {
     display: grid;
-    gap: 40px;
-    margin-top: 36px;
+    gap: 8px;
+    margin-top: 32px;
 
     @media (min-width: 860px) {
-      grid-template-columns: 1.2fr 1fr;
-      gap: 64px;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 48px;
     }
   }
 
-  &__head {
-    font-size: 1.2rem;
-    padding-bottom: 14px;
-    border-bottom: 2px solid $primary;
-  }
-  &__col--no &__head {
-    color: $ink-muted;
-    border-bottom-color: $line;
-  }
-
-  ul {
+  &__list {
     margin: 0;
     padding: 0;
     list-style: none;
-  }
 
-  li {
-    display: grid;
-    grid-template-columns: 28px 1fr;
-    gap: 10px;
-    padding: 16px 0;
-    border-bottom: 1px solid $line;
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid $line;
+    }
 
     i {
+      flex: none;
       display: grid;
       place-items: center;
       width: 24px;
@@ -1141,19 +659,19 @@ $grad-text: linear-gradient(95deg, $brand-navy 0%, $primary 55%, #1f7fd0 100%);
       color: $primary;
       font-size: 0.75rem;
     }
-  }
 
-  &__col--no li {
-    color: $ink-muted;
-
-    i {
-      background: $surface;
+    &--no {
       color: $ink-muted;
+
+      i {
+        background: $raised;
+        color: $ink-muted;
+      }
     }
   }
 }
 
-// ── Cierre ────────────────────────────────────────────────────────────────────
+// ── 4 · Cierre ────────────────────────────────────────────────────────────────
 .closing {
   position: relative;
   padding: 104px 0;
@@ -1170,7 +688,6 @@ $grad-text: linear-gradient(95deg, $brand-navy 0%, $primary 55%, #1f7fd0 100%);
     translate: -50% -55%;
     border-radius: 50%;
     background: radial-gradient(closest-side, rgba($brand-sky, 0.45), rgba($brand-steel, 0.2) 55%, transparent);
-    filter: blur(10px);
     pointer-events: none;
   }
 
@@ -1188,11 +705,9 @@ $grad-text: linear-gradient(95deg, $brand-navy 0%, $primary 55%, #1f7fd0 100%);
     letter-spacing: -0.04em;
   }
 
-  &__sub {
-    max-width: 560px;
-    margin: 18px 0 34px;
+  &__sign {
+    margin: 16px 0 32px;
     color: $ink-on-dark-muted;
-    font-size: 1.05rem;
   }
 }
 
@@ -1209,13 +724,6 @@ $grad-text: linear-gradient(95deg, $brand-navy 0%, $primary 55%, #1f7fd0 100%);
   &:hover:not(:disabled) {
     background: #eaf6ff;
   }
-}
-
-.btn--arrow i.fa-arrow-right {
-  transition: transform 0.25s $ease-out;
-}
-.btn--arrow:hover i.fa-arrow-right {
-  transform: translateX(3px);
 }
 
 // ── CTA fijo ──────────────────────────────────────────────────────────────────
@@ -1280,13 +788,8 @@ $grad-text: linear-gradient(95deg, $brand-navy 0%, $primary 55%, #1f7fd0 100%);
 
 // ── Movimiento reducido: todo visible y quieto ────────────────────────────────
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .rule__line li,
-  .markers li {
+  .reveal {
     opacity: 1;
-    transform: none;
-  }
-  .rule__line::before {
     transform: none;
   }
   .trace path {
@@ -1295,9 +798,6 @@ $grad-text: linear-gradient(95deg, $brand-navy 0%, $primary 55%, #1f7fd0 100%);
   .cell,
   .vsl__play::before {
     animation: none;
-  }
-  .steps::after {
-    transform: none;
   }
 }
 </style>

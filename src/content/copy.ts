@@ -39,102 +39,43 @@ export const SEO = {
 }
 
 // ── Landing (/) ───────────────────────────────────────────────────────────────
-// Estructura corta: hero → banda (la regla) → método DECIDE → quién habla + ¿es para ti?
+// Corta y enfocada en la oferta: hero con video → qué te llevas de la consulta → para quién es → cierre.
 export const LANDING = {
   // Temporizador del encabezado (components/CountdownTimer.vue). short = versión de celular.
   timer: { label: 'Agenda de evaluaciones', short: 'Agenda', prefix: 'Cierra en' },
-  headline: 'Antes de invertir un solo dólar,',
-  headlineAccent: 'entiende por qué tu cuerpo no está respondiendo.',
-  sub: 'Una persona puede recibir el mejor tratamiento del mundo y seguir igual. No porque el tratamiento sea malo, sino porque su organismo no estaba listo para aprovecharlo.',
+  headline: '¿Llevas años probando tratamientos',
+  headlineAccent: 'y sigues igual?',
+  sub: 'Antes de invertir en una terapia regenerativa, entiende si tu cuerpo está listo para responder.',
   videoCaption: 'Fundador de Power House Biotech',
   videoQuote: 'El problema casi nunca empieza en el tratamiento. Empieza antes.',
   cta: 'Ver el video completo',
   ctaNote: 'Sin costo · Solo te pedimos tus datos para mostrártelo',
 
-  // Banda: la regla de PHB en 4 verbos (VSL: "Primero entendemos, luego medimos…")
-  rule: {
-    title: 'Nuestra regla es simple.',
-    items: ['Primero entendemos', 'luego medimos', 'después preparamos', 'y solo entonces se habla de tratamiento.'],
-    metaphor:
-      'Es como sembrar en una tierra que no está preparada. Puedes tener la mejor semilla del mundo, pero si el terreno no está listo, no va a crecer.',
-  },
-
-  method: {
-    title: 'El método DECIDE',
-    sub: 'Seis pasos, y van en orden. Lo hace un equipo médico de medicina regenerativa, investigación en biomarcadores y optimización celular.',
+  // La oferta: la Consulta Informativa (VSL: "En esa consulta vas a entender…")
+  offer: {
+    title: 'En una videollamada vas a saber:',
     items: [
-      {
-        letter: 'D',
-        title: 'Detectar',
-        text: 'Revisamos la historia completa: el diagnóstico, cuánto tiempo lleva la condición, qué medicamentos se toman, qué tratamientos ya se probaron y cómo afecta el día a día.',
-      },
-      {
-        letter: 'E',
-        title: 'Evaluar',
-        text: 'El equipo médico analiza tus estudios de laboratorio y biomarcadores. No uno por uno, sino juntos, porque juntos cuentan una historia.',
-        markers: ['Glucosa', 'Colesterol', 'Marcadores de inflamación'],
-      },
-      {
-        letter: 'C',
-        title: 'Clarificar',
-        text: 'Te explicamos con palabras simples qué dicen esos resultados y qué tan serio es lo que muestran. Sin tecnicismos y sin asustarte.',
-      },
-      {
-        letter: 'I',
-        title: 'Identificar',
-        text: 'Buscamos por qué el organismo no está respondiendo, aunque se estén siguiendo las indicaciones del médico.',
-      },
-      {
-        letter: 'D',
-        title: 'Diseñar',
-        text: 'Con todo eso se arma una ruta. A veces es un tratamiento regenerativo. A veces, primero un plan de preparación de unos 90 días. Y a veces la ruta es no tratar.',
-      },
-      {
-        letter: 'E',
-        title: 'Encaminar',
-        text: 'Te acompañamos en el siguiente paso, coordinado con tu médico tratante, para que la decisión no quede en el aire.',
-      },
+      'Qué podría estar frenando tu recuperación.',
+      'Si vale la pena un tratamiento regenerativo en tu caso.',
+      'Qué tendrías que hacer primero.',
     ],
-    cta: 'Quiero ver cómo funciona',
-  },
-
-  founder: {
-    name: PERSON_NAME,
-    role: 'Fundador de Power House Biotech',
-    title: 'No te vamos a vender un tratamiento. Te vamos a dar claridad.',
-    bio: [
-      'No soy médico. Soy investigador y emprendedor en el sector salud, y llevo años trabajando junto a equipos médicos en medicina regenerativa.',
-      'Mi padre, el doctor Juan Antonio Garza Quintanilla, dedicó su vida a la medicina regenerativa. Crecí viendo lo que pasa cuando se decide bien, y también lo que pasa cuando se decide a ciegas.',
-    ],
-    quote: 'Preferimos tu confianza antes que tu dinero.',
-    facts: [
-      { value: '20%', label: 'de los perfiles que nos escriben pasa a la evaluación' },
-      { value: '6', label: 'pasos del método DECIDE, siempre en orden' },
-      { value: '48–72 h', label: 'para la lectura personalizada de tus estudios' },
-    ],
-    recognition: 'Reconocido por Forbes entre los emprendedores a seguir',
+    how: ['Respondes unas preguntas', 'Eliges día y hora', 'Tienes a la mano tus estudios'],
   },
 
   fit: {
     title: 'Esto no es para todos.',
-    yesTitle: 'Es para ti si…',
-    noTitle: 'No es para ti si…',
+    sub: 'Solo alrededor del 20% de los perfiles pasa a la evaluación.',
     yes: [
-      'Tienes más de 40 años y llevas tiempo con una condición que no termina de resolverse.',
-      'Ya probaste otras opciones y estás pensando en células madre, exosomas u otra terapia regenerativa.',
-      'Quieres saber si tiene sentido en tu caso antes de invertir, y estás dispuesto a escuchar un "todavía no".',
-      'Acompañas a tu papá, a tu mamá o a tu pareja y quieres ayudarle a decidir bien.',
+      'Tienes más de 40 años y una condición que no se resuelve.',
+      'Ya probaste otras opciones y piensas en una terapia regenerativa.',
+      'Quieres claridad antes de invertir.',
     ],
-    no: [
-      'Buscas una solución mágica o rápida.',
-      'Quieres dejar de lado a tu médico. Esta evaluación no reemplaza la consulta médica, la complementa.',
-      'Hoy no estás en posición de invertir en tu salud.',
-    ],
+    no: ['Buscas una solución mágica o rápida.', 'Quieres dejar de lado a tu médico.'],
   },
 
   closing: {
     title: 'Primero entender. Después decidir.',
-    sub: 'No estás contratando un tratamiento. Estás contratando la claridad para saber si un tratamiento vale la pena antes de pagarlo.',
+    sign: `${PERSON_NAME} · Fundador de Power House Biotech`,
     cta: 'Ver el video completo',
   },
 
@@ -150,7 +91,7 @@ export const LANDING = {
     items: [] as TeamMember[],
   },
 
-  sticky: { title: 'Evaluación de Viabilidad Regenerativa', sub: `Video de ${PERSON_NAME}`, cta: 'Ver video' },
+  sticky: { title: 'Evaluación regenerativa', sub: `Video de ${PERSON_NAME}`, cta: 'Ver video' },
   disclaimer:
     'Esta evaluación no reemplaza la consulta médica, la complementa. Los resultados dependen de cada caso. Este sitio no está respaldado por Meta Platforms, Inc. ni forma parte de Facebook.',
 }

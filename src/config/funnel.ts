@@ -36,8 +36,6 @@ export const GHL_BOOKING_FRAME_ID = ''
 // Si el CDN falla se usa VSL_POSTER_FALLBACK (archivo en public/). Ambos vacíos = recuadro oscuro.
 export const VSL_POSTER = ''
 export const VSL_POSTER_FALLBACK = '' // ej. '/vsl-poster.webp'
-// Foto de quien habla para la sección "quién habla" (otro encuadre que la portada). Vacío = sin foto.
-export const FOUNDER_PHOTO = ''
 // Logo como URL absoluta (para el JSON-LD de la empresa). Vacío = el JSON-LD va sin logo.
 export const LOGO_URL = ''
 

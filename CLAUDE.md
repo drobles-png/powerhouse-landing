@@ -7,11 +7,11 @@ Flujo: `/` → registro → `/ver-video` → cualificación → `/agendar` (cale
 Sin pago. Oferta: Consulta Informativa de Evaluación de Viabilidad Regenerativa (videollamada).
 
 ## Diseño
-Estructura corta: hero (portada del video) → regla "Primero entendemos, luego medimos…" (banda oscura)
-→ método DECIDE (letras que se activan con el scroll + riel de progreso) → quién habla + cifras +
-"Esto no es para todos" → cierre "Primero entender. Después decidir.".
-Recurso propio: el degradado del logo PHB (navy → aqua) como línea de lectura de biomarcadores.
+Corta y con poco texto (pedido de David): hero con video → qué te llevas de la consulta (3 puntos +
+cómo se agenda) → para quién es / no es → cierre "Primero entender. Después decidir.".
+Recurso propio: el degradado del logo PHB (navy → aqua) como trazo bajo el hero y en los números.
 Títulos Helvetica, textos Poppins (ficha). Colores en `src/styles/tokens.scss`.
+`.reveal` solo en elementos sin `:class` dinámico (Vue borra `is-in` al reescribir la clase).
 
 ## Cualificación (`src/utils/qualification.ts`)
 edad · condicion · medico · inversion + abierta (caso, tratamientos probados, qué espera lograr).
@@ -23,7 +23,7 @@ No califica: `edad=menos_40`, `condicion=solo_info`, `medico=dejar_medico`, `inv
 - Calendario GHL (`src` + `id` del iframe)
 - Media ID de Wistia
 - Meta Pixel ID + token CAPI (lo tiene David)
-- Foto de Juan Román para la portada del video (`VSL_POSTER`) y otra para "quién habla" (`FOUNDER_PHOTO`)
+- Foto de Juan Román para la portada del video (`VSL_POSTER`)
 - Logo en PNG/SVG con fondo transparente (el actual es recorte del JPG)
 - País por defecto del teléfono: puse MX, confirmar
 - Legales: razón social, RUC/RFC, ciudad, correo (`LEGAL`)
