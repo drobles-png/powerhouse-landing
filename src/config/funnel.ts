@@ -24,18 +24,20 @@ export const SITE_URL = ''
 export const META_PIXEL_ID = ''
 
 // ── GoHighLevel (subcuenta DEL CLIENTE) ───────────────────────────────────────
-export const GHL_CONTACT_WEBHOOK = '' // "obtener contacto"
-export const GHL_QUALIFICATION_WEBHOOK = '' // "obtener cualificación"
-export const GHL_BOOKING_CALENDAR = '' // URL del src del iframe del código de inserción
+export const GHL_CONTACT_WEBHOOK =
+  'https://services.leadconnectorhq.com/hooks/P62nq2IVqxaQbOrD3P1R/webhook-trigger/yOdeNEYgW6o13LDq88Jl' // "obtener contacto"
+export const GHL_QUALIFICATION_WEBHOOK =
+  'https://services.leadconnectorhq.com/hooks/P62nq2IVqxaQbOrD3P1R/webhook-trigger/SvHGLIEQhgioWSK0fbex' // "obtener cualificación"
+export const GHL_BOOKING_CALENDAR = 'https://api.leadconnectorhq.com/widget/booking/Pt4IJuFRDFG2EsbVaZsR' // URL del src del iframe del código de inserción
 // Id del iframe en formato del código de inserción de GHL (<calendarId>_<timestamp>);
 // form_embed.js lo usa para el alto automático. Cópialo del embed que manda el cliente.
-export const GHL_BOOKING_FRAME_ID = ''
+export const GHL_BOOKING_FRAME_ID = 'ccQ5gzARdfxHFoGrza5E_1794516763240'
 
 // ── Imágenes ──────────────────────────────────────────────────────────────────
 // Portada del video en la landing (foto de quien habla). URL de Cloudinary (f_auto,q_auto,w_1200).
 // Si el CDN falla se usa VSL_POSTER_FALLBACK (archivo en public/). Ambos vacíos = recuadro oscuro.
 export const VSL_POSTER = ''
-export const VSL_POSTER_FALLBACK = '' // ej. '/vsl-poster.webp'
+export const VSL_POSTER_FALLBACK = '/vsl-poster.webp' // ej. '/vsl-poster.webp'
 // Logo como URL absoluta (para el JSON-LD de la empresa). Vacío = el JSON-LD va sin logo.
 export const LOGO_URL = ''
 

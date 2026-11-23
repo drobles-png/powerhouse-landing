@@ -19,11 +19,9 @@ No califica: `edad=menos_40`, `condicion=solo_info`, `medico=dejar_medico`, `inv
 (sale del "no es para ti" del VSL). **Confirmar con el cliente.**
 
 ## Pendientes
-- Webhooks GHL de contacto y cualificación → `src/config/funnel.ts`
-- Calendario GHL (`src` + `id` del iframe)
 - Media ID de Wistia
 - Meta Pixel ID + token CAPI (lo tiene David)
-- Foto de Juan Román para la portada del video (`VSL_POSTER`)
+- Foto de Juan Román: lista en `public/vsl-poster.webp`
 - Logo en PNG/SVG con fondo transparente (el actual es recorte del JPG)
 - País por defecto del teléfono: puse MX, confirmar
 - Legales: razón social, RUC/RFC, ciudad, correo (`LEGAL`)

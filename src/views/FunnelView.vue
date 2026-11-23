@@ -116,6 +116,7 @@ onBeforeUnmount(() => {
         <button
           type="button"
           class="vsl enter"
+          :class="{ 'vsl--photo': poster }"
           style="--d: 180ms"
           data-cta="registro"
           aria-label="Ver el video completo"
@@ -130,7 +131,7 @@ onBeforeUnmount(() => {
             decoding="async"
             @error="onPosterError"
           />
-          <span v-else class="vsl__quote" aria-hidden="true">“{{ LANDING.videoQuote }}”</span>
+          <span class="vsl__quote" aria-hidden="true">“{{ LANDING.videoQuote }}”</span>
           <span class="vsl__play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
           <span class="vsl__caption">
             <strong>{{ PERSON_NAME }}</strong>
@@ -432,12 +433,17 @@ $ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     }
   }
 
+  // Foto con fondo blanco: multiply la funde con el fondo celeste de la tarjeta
   &__poster {
     position: absolute;
-    inset: 0;
-    width: 100%;
+    right: -4%;
+    bottom: 0;
     height: 100%;
+    width: auto;
+    max-width: 62%;
     object-fit: cover;
+    object-position: top;
+    mix-blend-mode: multiply;
   }
 
   &__quote {
@@ -477,8 +483,8 @@ $ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     }
   }
 
-  // Sin foto: la cita arriba y el play abajo a la derecha, para que no se monten
-  &:not(:has(.vsl__poster)) &__play {
+  // La cita arriba, el play debajo y el nombre abajo: nada se monta
+  &__play {
     position: absolute;
     left: 24px;
     bottom: 96px;
@@ -510,16 +516,39 @@ $ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     }
   }
 
-  // Con foto: degradado abajo para que el nombre se lea
-  &:has(&__poster)::after {
-    content: '';
-    position: absolute;
-    inset: 50% 0 0;
-    background: linear-gradient(transparent, rgba($surface-dark, 0.85));
-  }
   &__caption,
-  &__play {
+  &__play,
+  &__quote {
     z-index: 1;
+  }
+
+  // Con foto: tarjeta celeste, texto índigo a la izquierda y Juan Román a la derecha
+  &--photo {
+    background: linear-gradient(160deg, #eaf3ff 0%, #cfe3fb 55%, #a9d3f7 100%);
+    color: $ink;
+    box-shadow:
+      0 30px 60px -24px rgba($brand-navy, 0.35),
+      0 0 0 1px rgba($primary, 0.08) inset;
+  }
+  &--photo &__quote {
+    right: 46%;
+    color: $brand-navy;
+  }
+  &--photo &__play {
+    background: $primary;
+    color: #fff;
+
+    &::before {
+      border-color: rgba($primary, 0.45);
+    }
+  }
+  &--photo &__caption {
+    max-width: 50%;
+    color: $ink-muted;
+
+    strong {
+      color: $ink;
+    }
   }
 }
 @keyframes ring {
