@@ -16,7 +16,7 @@ import {
 import { ASK_CITY, DEFAULT_COUNTRY, GHL_CONTACT_WEBHOOK, PAYMENT_ENABLED } from '@/config/funnel'
 import { REGISTRO } from '@/content/copy'
 import { useDialogFocus } from '@/composables/useDialogFocus'
-import { useContactStore } from '@/stores/contact'
+import { pixelUserData, useContactStore } from '@/stores/contact'
 import { sendCapiEvent } from '@/utils/capi'
 import { buildPayload, fbq, generateEventId, postToGhl, type ContactoNota } from '@/utils/ghl'
 
@@ -137,6 +137,7 @@ async function handleSubmit() {
   )
 
   const custom = { content_name: 'registro' }
+  pixelUserData(c)
   fbq('track', 'CompleteRegistration', custom, { eventID: eventId })
   sendCapiEvent(
     'CompleteRegistration',
