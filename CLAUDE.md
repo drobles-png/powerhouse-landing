@@ -27,3 +27,6 @@ No califica: `edad=menos_40`, `condicion=solo_info`, `medico=dejar_medico`, `inv
 - Legales: razón social, RUC/RFC, ciudad, correo (`LEGAL`)
 - Dominio final y `og:image` 1200×630
 - Confirmar la regla de cualificación
+
+## Auditoría 22-nov-2026
+- El calendario `Pt4IJuFRDFG2EsbVaZsR` (round robin del grupo `ccQ5gzARdfxHFoGrza5E`, por eso el frame id empieza distinto) **no tiene usuarios asignados**: GHL responde "No users found in the calendar" → no muestra horarios. Asignar quién atiende en GHL antes de publicar.
